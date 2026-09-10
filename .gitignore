@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+dist/
+out/
+build/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# pnpm
+pnpm-debug.log*
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+.docker/
+
+# Generated / synthetic data
+data/
+*.csv
+*.ndjson
+
+# Database
+*.sqlite
+*.db
+
+# Vitest
+coverage/
+
+# Drizzle migrations (generated)
+drizzle/
+
+# Docs (local only)
+docs/
