@@ -2,7 +2,6 @@
 
 **AI-explained anomaly detection for EHR access logs — built entirely on synthetic data.**
 
-> Caduceus (the medical symbol) + Ward (hospital ward, and to keep watch over).
 
 ## The problem
 
