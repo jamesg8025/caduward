@@ -1,0 +1,20 @@
+{
+  "name": "@caduward/synthetic-data",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "generate": "tsx src/index.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@caduward/db": "workspace:*",
+    "@caduward/shared": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
