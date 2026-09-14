@@ -45,8 +45,5 @@ data/
 # Vitest
 coverage/
 
-# Drizzle migrations (generated)
-drizzle/
-
-# Docs (local only)
-docs/
+# Drizzle local state (studio, etc.) — migrations are tracked
+drizzle/meta/_journal.json.bak
