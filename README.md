@@ -1,6 +1,6 @@
 # CaduWard
 
-**AI-explained anomaly detection for EHR access logs — built entirely on synthetic data.**
+**AI-explained anomaly detection for EHR access logs. Built entirely on synthetic data.**
 
 
 ## The problem
