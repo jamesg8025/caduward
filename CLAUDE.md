@@ -10,6 +10,7 @@ An anomaly-detection and AI-explanation system for EHR access logs, built entire
 - **No unexplained flags.** Every anomaly flag must produce a human-readable explanation (FR-13). Don't ship a detection feature without wiring it to the explanation layer.
 - **Ground truth stays hidden from detection logic.** `is_seeded_anomaly`/`seeded_anomaly_type` are for evaluation only (Phase 5) — never let the detection engine read them.
 - **Don't silently change the anomaly taxonomy.** If you add or modify an anomaly type, update `docs/DATA_MODEL.md` and `docs/SRS.md` Appendix A in the same change.
+- **Never commit sensitive data.** No `.env` files (except `.env.example`), API keys, credentials, or auth tokens in code, fixtures, or config. When adding a new file type that could contain secrets, add it to `.gitignore` immediately in the same change. Before pushing, verify no secrets appear in `git diff origin/main`.
 
 ## Stack (use exactly this — don't substitute without asking)
 Next.js (App Router) · Hono or Route Handlers · Drizzle ORM · PostgreSQL + pgvector · better-auth · Socket.IO · Zod · Claude API (structured JSON output) · pnpm workspaces · Biome · Vitest · Docker Compose
@@ -33,12 +34,27 @@ pnpm lint
 - Detection rules live in isolated, independently unit-testable functions (one file per rule or a clear rule registry) — see `ARCHITECTURE.md`
 - Commit messages reference the roadmap phase/item they address, when applicable
 
+## Testing
+Every piece of non-trivial code ships with a co-located test file (`*.test.ts`). Use Vitest. Follow the same patterns you'd find in a well-maintained open-source TypeScript repo:
+- **Pure functions** (detection rules, transforms, validators): unit-test directly with hand-built inputs. No DB, no network.
+- **DB layer** (`@caduward/db`): integration tests against a real Postgres instance (the compose one). Use `beforeEach`/`afterEach` to truncate tables; never mock Drizzle.
+- **Generator logic** (`@caduward/synthetic-data`): unit-test the anomaly-injection logic and transforms in isolation using small in-memory fixtures, not a full Synthea run.
+- **API / worker orchestration**: test the happy path and one error path per handler; stub external I/O (Claude API, Postgres) only at the outermost boundary, not inside business logic.
+- **Naming**: `describe` blocks mirror the module name; `it` descriptions read as plain English sentences (`it("flags access outside scheduled hours", ...)`).
+- **Fixtures**: keep fixtures minimal and inline unless they exceed ~20 lines, in which case put them in a `__fixtures__/` directory next to the test.
+- **Coverage target**: aim for 80 %+ on packages/shared, packages/synthetic-data, and the detection-rule files in apps/worker. Coverage is measured, not enforced in CI for now, but don't leave obvious gaps.
+
 ## Workflow
 1. Check `docs/ROADMAP.md` for the current phase and the next unchecked item.
 2. Implement the smallest coherent slice of that item.
-3. Add or update tests alongside the change.
+3. Add or update tests alongside the change — every new function or module gets at least a happy-path and an edge-case test before the task is considered done.
 4. Check off the roadmap item when done, and update SRS/DATA_MODEL/ARCHITECTURE if the change affects them.
 5. Don't jump ahead to a later phase's work without flagging that you're doing so and why.
+
+## Commits
+- Each commit should represent a logical, reviewable unit of work — typically one feature, one fix, or one refactor with a clear purpose. Don't squash an entire roadmap phase into a single commit.
+- When implementing a phase, break it into multiple commits organized by concern: migrations separately from seed logic, detection rules separately from tests, API endpoints separately from schema changes. A reader should understand each commit's intent without jumping between files.
+- Commit messages reference the roadmap phase/item they address (e.g., `Add access-time anomaly detection rule (Phase 2, FR-5)`).
 
 ## Definition of done (per feature)
 - Passes `pnpm lint` and `pnpm test`
