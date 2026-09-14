@@ -1,9 +1,16 @@
-import { describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
+import { loadConfig } from "./config.js";
+import { transformBundle } from "./fhir/transform.js";
+import { generateAccessEvents } from "./generators/access-events.js";
+import { generateStaff } from "./generators/staff.js";
+import { SeededRandom } from "./random.js";
 
-// Placeholder — real tests will be added in Phase 1 alongside the
-// staff generator, access-event generator, and anomaly injector.
 describe("@caduward/synthetic-data", () => {
-  it("is a valid module", async () => {
-    await import("./index.js");
+  it("exports all pipeline components", () => {
+    expect(loadConfig).toBeTypeOf("function");
+    expect(transformBundle).toBeTypeOf("function");
+    expect(generateStaff).toBeTypeOf("function");
+    expect(generateAccessEvents).toBeTypeOf("function");
+    expect(SeededRandom).toBeTypeOf("function");
   });
 });
