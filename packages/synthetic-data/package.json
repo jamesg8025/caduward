@@ -9,6 +9,7 @@
   "dependencies": {
     "@caduward/db": "workspace:*",
     "@caduward/shared": "workspace:*",
+    "seedrandom": "^3.0.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {

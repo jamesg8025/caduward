@@ -111,6 +111,9 @@ importers:
       '@caduward/shared':
         specifier: workspace:*
         version: link:../shared
+      seedrandom:
+        specifier: ^3.0.5
+        version: 3.0.5
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -1437,6 +1440,9 @@ packages:
   scheduler@0.28.0:
     resolution: {integrity: sha512-juorfCmIkIw8tT+p5BXSm6PJjQF/ycEYmKyzURCIt/RaZIhL+PulbQ9Yu2z1HdOJDdqDTlxA1+xKBmHXJsczAw==}
 
+  seedrandom@3.0.5:
+    resolution: {integrity: sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg==}
+
   semver@7.8.5:
     resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
     engines: {node: '>=10'}
@@ -2464,6 +2470,8 @@ snapshots:
       fsevents: 2.3.3
 
   scheduler@0.28.0: {}
+
+  seedrandom@3.0.5: {}
 
   semver@7.8.5:
     optional: true
