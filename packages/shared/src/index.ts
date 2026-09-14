@@ -1,6 +1,17 @@
-// Shared Zod schemas and TypeScript types.
-// Phase 3 will add the flag explanation schema:
-//   { summary, contributing_factors, recommended_action }
-// Additional API contracts and event shapes will be added as phases progress.
-
-export {};
+export {
+  ANOMALY_TYPES,
+  anomalyTypeSchema,
+  type AnomalyType,
+  ACCESS_TYPES,
+  accessTypeSchema,
+  type AccessType,
+  STAFF_ROLES,
+  staffRoleSchema,
+  type StaffRole,
+  DEPARTMENTS,
+  departmentSchema,
+  type Department,
+  generatorConfigSchema,
+  type GeneratorConfig,
+  DEFAULT_GENERATOR_CONFIG,
+} from "./schemas.js";
