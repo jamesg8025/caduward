@@ -6,7 +6,6 @@ export default defineConfig({
   dialect: "postgresql",
   dbCredentials: {
     url:
-      process.env.CADUWARD_DATABASE_URL ??
-      "postgresql://caduward:caduward@localhost:5432/caduward",
+      process.env.CADUWARD_DATABASE_URL ?? "postgresql://caduward:caduward@localhost:5433/caduward",
   },
 });
