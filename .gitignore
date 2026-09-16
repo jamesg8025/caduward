@@ -47,3 +47,4 @@ coverage/
 
 # Drizzle local state (studio, etc.) — migrations are tracked
 drizzle/meta/_journal.json.bak
+docs/ROADMAP.md
