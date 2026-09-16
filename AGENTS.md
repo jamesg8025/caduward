@@ -38,6 +38,13 @@ pnpm lint
 - All DB access through Drizzle — no raw SQL outside migration files
 - Detection rules live in isolated, independently unit-testable functions
 
+## Branching and PRs
+- Each ROADMAP.md phase is implemented on its own branch: `phase-N-<short-name>` (e.g. `phase-2-detection-engine`), created off `main` *before* the phase's first commit.
+- Within a phase, keep committing in logically-scoped commits as usual (see commit conventions above).
+- When a phase's commits are complete, push the branch and open a PR into `main`. Reference the ROADMAP.md phase and relevant FR-#s in the PR description.
+- Before starting a phase, always propose whether it should ship as a single PR or split into 2-3 PRs along natural seams (e.g. data layer vs. detection logic vs. tests), and wait for confirmation before creating the branch or starting work.
+- Don't start the next phase's branch until the current phase's PR is merged into `main`.
+
 ## Testing
 Every piece of non-trivial code ships with a co-located test file (`*.test.ts`). Use Vitest. Follow the same patterns you'd find in a well-maintained open-source TypeScript repo:
 - **Pure functions** (detection rules, transforms, validators): unit-test directly with hand-built inputs. No DB, no network.
@@ -51,10 +58,12 @@ Every piece of non-trivial code ships with a co-located test file (`*.test.ts`).
 
 ## Workflow
 1. Check `docs/ROADMAP.md` for the current phase and the next unchecked item.
-2. Implement the smallest coherent slice.
-3. Add or update tests alongside the change — every new function or module gets at least a happy-path and an edge-case test; run `pnpm test` and `pnpm lint` before considering a task complete.
-4. Check off the roadmap item, updating SRS/DATA_MODEL/ARCHITECTURE if affected.
-5. Summarize what changed and why at the end of each task, referencing the roadmap item(s) addressed.
+2. Propose the branch/PR split for the phase (single PR vs. multiple) per "Branching and PRs" above; wait for confirmation.
+3. Create the phase branch and implement the smallest coherent slice of that item.
+4. Add or update tests alongside the change.
+5. Check off the roadmap item when done, and update SRS/DATA_MODEL/ARCHITECTURE if the change affects them.
+6. Don't jump ahead to a later phase's work without flagging that you're doing so and why.
+7. When the phase's commits are complete, push the branch and open the PR per "Branching and PRs" above.
 
 ## Commits
 - Each commit is a single, reviewable unit of work — one feature, one fix, one refactor. Don't combine an entire roadmap phase into one commit.
