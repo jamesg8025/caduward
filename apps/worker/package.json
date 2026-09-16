@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@caduward/db": "workspace:*",
-    "@caduward/shared": "workspace:*"
+    "@caduward/shared": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "@types/node": "^22.10.7",
