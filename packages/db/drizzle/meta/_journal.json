@@ -8,6 +8,13 @@
       "when": 1789417078608,
       "tag": "0000_quick_kid_colt",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789530605843,
+      "tag": "0001_gray_stephen_strange",
+      "breakpoints": true
     }
   ]
 }
