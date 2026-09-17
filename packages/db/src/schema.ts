@@ -133,6 +133,22 @@ export const anomalyFlags = pgTable(
   ],
 );
 
+export const flagExplanations = pgTable(
+  "flag_explanations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    flagId: uuid("flag_id")
+      .notNull()
+      .references(() => anomalyFlags.id, { onDelete: "cascade" }),
+    summary: text("summary").notNull(),
+    contributingFactors: text("contributing_factors").array().notNull(),
+    recommendedAction: text("recommended_action").notNull(),
+    rawModelResponse: text("raw_model_response").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("flag_explanations_flag_id_idx").on(table.flagId)],
+);
+
 export const roleBaselines = pgTable(
   "role_baselines",
   {
