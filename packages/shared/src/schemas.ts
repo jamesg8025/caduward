@@ -7,6 +7,7 @@ export const ANOMALY_TYPES = [
   "vip_access",
   "self_access",
   "dormant_reactivation",
+  "pattern_deviation",
 ] as const;
 
 export const anomalyTypeSchema = z.enum(ANOMALY_TYPES);
@@ -67,3 +68,23 @@ export const DEFAULT_GENERATOR_CONFIG: GeneratorConfig = {
   staffCount: 200,
   timeWindowDays: 30,
 };
+
+// --- Phase 2: Detection engine types ---
+
+export const REVIEW_STATUSES = ["open", "reviewed", "escalated", "dismissed"] as const;
+
+export const reviewStatusSchema = z.enum(REVIEW_STATUSES);
+export type ReviewStatus = z.infer<typeof reviewStatusSchema>;
+
+export const SEVERITY_LEVELS = ["low", "medium", "high", "critical"] as const;
+
+export const severitySchema = z.enum(SEVERITY_LEVELS);
+export type Severity = z.infer<typeof severitySchema>;
+
+export const ruleResultSchema = z.object({
+  rule: anomalyTypeSchema,
+  fired: z.boolean(),
+  details: z.string().optional(),
+});
+
+export type RuleResult = z.infer<typeof ruleResultSchema>;

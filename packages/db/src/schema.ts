@@ -1,14 +1,32 @@
 import {
   boolean,
+  customType,
   date,
   index,
+  integer,
   pgEnum,
   pgTable,
+  real,
   text,
   time,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+
+export const VECTOR_DIMENSIONS = 9;
+
+const vector = customType<{ data: number[]; driverParam: string }>({
+  dataType() {
+    return `vector(${VECTOR_DIMENSIONS})`;
+  },
+  toDriver(value: number[]): string {
+    return `[${value.join(",")}]`;
+  },
+  fromDriver(value: unknown): number[] {
+    return String(value).replace(/[[\]]/g, "").split(",").map(Number);
+  },
+});
 
 export const accessTypeEnum = pgEnum("access_type", ["view", "edit", "print"]);
 
@@ -81,4 +99,49 @@ export const accessEvents = pgTable(
     index("access_events_patient_id_idx").on(table.patientId),
     index("access_events_timestamp_idx").on(table.timestamp),
   ],
+);
+
+// --- Phase 2: Detection engine tables ---
+
+export const reviewStatusEnum = pgEnum("review_status", [
+  "open",
+  "reviewed",
+  "escalated",
+  "dismissed",
+]);
+
+export const severityEnum = pgEnum("severity", ["low", "medium", "high", "critical"]);
+
+export const anomalyFlags = pgTable(
+  "anomaly_flags",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    accessEventId: uuid("access_event_id")
+      .notNull()
+      .references(() => accessEvents.id, { onDelete: "cascade" }),
+    triggeredRules: text("triggered_rules").array().notNull(),
+    severity: severityEnum("severity").notNull(),
+    similarityScore: real("similarity_score"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    reviewStatus: reviewStatusEnum("review_status").notNull().default("open"),
+  },
+  (table) => [
+    uniqueIndex("anomaly_flags_access_event_id_idx").on(table.accessEventId),
+    index("anomaly_flags_severity_idx").on(table.severity),
+    index("anomaly_flags_review_status_idx").on(table.reviewStatus),
+    index("anomaly_flags_created_at_idx").on(table.createdAt),
+  ],
+);
+
+export const roleBaselines = pgTable(
+  "role_baselines",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    role: text("role").notNull(),
+    department: text("department").notNull(),
+    centroid: vector("centroid").notNull(),
+    eventCount: integer("event_count").notNull(),
+    computedAt: timestamp("computed_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("role_baselines_role_department_idx").on(table.role, table.department)],
 );

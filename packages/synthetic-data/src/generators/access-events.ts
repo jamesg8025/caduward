@@ -245,6 +245,9 @@ function generateAnomalyByType(
       return generateSelfAccessAnomaly(ctx);
     case "dormant_reactivation":
       return generateDormantReactivationAnomaly(ctx);
+    case "pattern_deviation":
+      // pattern_deviation is a detection-side concept, not a seeded anomaly type
+      return null;
   }
 }
 
