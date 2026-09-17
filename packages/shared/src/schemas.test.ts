@@ -4,6 +4,7 @@ import {
   accessTypeSchema,
   anomalyTypeSchema,
   departmentSchema,
+  flagExplanationSchema,
   generatorConfigSchema,
   staffRoleSchema,
 } from "./schemas.js";
@@ -85,5 +86,45 @@ describe("generatorConfigSchema", () => {
   it("rejects anomalyRate above 1", () => {
     const bad = { ...DEFAULT_GENERATOR_CONFIG, anomalyRate: 1.5 };
     expect(() => generatorConfigSchema.parse(bad)).toThrow();
+  });
+});
+
+describe("flagExplanationSchema", () => {
+  const valid = {
+    summary: "Nurse accessed a VIP patient record outside shift hours.",
+    contributing_factors: ["Off-shift access", "VIP patient record"],
+    recommended_action: "Escalate to compliance officer for review.",
+  };
+
+  it("parses a valid explanation", () => {
+    const result = flagExplanationSchema.parse(valid);
+    expect(result.summary).toBe(valid.summary);
+    expect(result.contributing_factors).toHaveLength(2);
+    expect(result.recommended_action).toBe(valid.recommended_action);
+  });
+
+  it("rejects empty summary", () => {
+    expect(() => flagExplanationSchema.parse({ ...valid, summary: "" })).toThrow();
+  });
+
+  it("rejects empty contributing_factors array", () => {
+    expect(() => flagExplanationSchema.parse({ ...valid, contributing_factors: [] })).toThrow();
+  });
+
+  it("rejects empty recommended_action", () => {
+    expect(() => flagExplanationSchema.parse({ ...valid, recommended_action: "" })).toThrow();
+  });
+
+  it("rejects contributing_factors with empty strings", () => {
+    expect(() =>
+      flagExplanationSchema.parse({ ...valid, contributing_factors: ["valid", ""] }),
+    ).toThrow();
+  });
+
+  it("rejects more than 10 contributing factors", () => {
+    const tooMany = Array.from({ length: 11 }, (_, i) => `Factor ${i + 1}`);
+    expect(() =>
+      flagExplanationSchema.parse({ ...valid, contributing_factors: tooMany }),
+    ).toThrow();
   });
 });
