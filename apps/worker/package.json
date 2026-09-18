@@ -9,6 +9,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.126.0",
     "@caduward/db": "workspace:*",
     "@caduward/shared": "workspace:*",
     "drizzle-orm": "^0.45.2",

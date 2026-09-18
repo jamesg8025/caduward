@@ -88,3 +88,22 @@ export const ruleResultSchema = z.object({
 });
 
 export type RuleResult = z.infer<typeof ruleResultSchema>;
+
+// --- Phase 3: Explanation layer types ---
+
+export const flagExplanationSchema = z.object({
+  summary: z
+    .string()
+    .min(1, "Summary must not be empty")
+    .max(1000, "Summary must be under 1000 characters"),
+  contributing_factors: z
+    .array(z.string().min(1))
+    .min(1, "Must include at least one contributing factor")
+    .max(10, "At most 10 contributing factors"),
+  recommended_action: z
+    .string()
+    .min(1, "Recommended action must not be empty")
+    .max(500, "Recommended action must be under 500 characters"),
+});
+
+export type FlagExplanation = z.infer<typeof flagExplanationSchema>;

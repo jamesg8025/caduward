@@ -22,4 +22,6 @@ export {
   type Severity,
   ruleResultSchema,
   type RuleResult,
+  flagExplanationSchema,
+  type FlagExplanation,
 } from "./schemas.js";
