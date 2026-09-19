@@ -10,3 +10,6 @@ const client = postgres(connectionString);
 export const db = drizzle(client, { schema });
 
 export * from "./schema";
+
+// Re-export drizzle query utilities so consumers use the same version
+export { eq, and, or, desc, asc, sql, type SQL } from "drizzle-orm";

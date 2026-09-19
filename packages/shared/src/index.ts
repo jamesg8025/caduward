@@ -24,4 +24,4 @@ export {
   type RuleResult,
   flagExplanationSchema,
   type FlagExplanation,
-} from "./schemas.js";
+} from "./schemas";
