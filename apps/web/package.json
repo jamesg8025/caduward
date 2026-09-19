@@ -8,7 +8,9 @@
     "start": "next start"
   },
   "dependencies": {
+    "@caduward/db": "workspace:*",
     "@caduward/shared": "workspace:*",
+    "better-auth": "^1.7.5",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
