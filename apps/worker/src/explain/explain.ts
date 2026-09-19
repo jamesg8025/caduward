@@ -62,10 +62,18 @@ export async function generateExplanation(
  * For each anomaly flag without a corresponding flag_explanation,
  * generates an explanation via the LLM provider and persists it.
  */
+export interface ExplainedFlag {
+  flagId: string;
+  severity: string;
+  triggeredRules: string[];
+  summary: string;
+  createdAt: Date;
+}
+
 export async function runExplanationPass(
   database: PostgresJsDatabase,
   provider: ExplanationProvider,
-  options?: { maxRetries?: number },
+  options?: { maxRetries?: number; onExplained?: (flag: ExplainedFlag) => void },
 ): Promise<ExplainPassResult> {
   const maxRetries = options?.maxRetries ?? DEFAULT_MAX_RETRIES;
 
@@ -151,6 +159,14 @@ export async function runExplanationPass(
       });
 
       totalExplained++;
+
+      options?.onExplained?.({
+        flagId: flag.flagId,
+        severity: flag.severity,
+        triggeredRules: flag.triggeredRules,
+        summary: explanation.summary,
+        createdAt: new Date(),
+      });
     } catch (error) {
       totalFailed++;
       console.error(

@@ -3,9 +3,12 @@ import { refreshRoleBaselines } from "./baselines/refresh.js";
 import { runDetectionPass } from "./detect.js";
 import { runExplanationPass } from "./explain/explain.js";
 import { createProvider } from "./explain/providers.js";
+import { emitNewFlag, startSocketServer } from "./socket.js";
 
 async function main() {
   console.log("CaduWard worker starting...");
+
+  await startSocketServer();
 
   console.log("Refreshing role baselines...");
   const baselineResult = await refreshRoleBaselines(db);
@@ -20,7 +23,17 @@ async function main() {
 
   console.log("Running explanation pass...");
   const provider = createProvider();
-  const explainResult = await runExplanationPass(db, provider);
+  const explainResult = await runExplanationPass(db, provider, {
+    onExplained: (flag) => {
+      emitNewFlag({
+        id: flag.flagId,
+        severity: flag.severity,
+        triggeredRules: flag.triggeredRules,
+        summary: flag.summary,
+        createdAt: flag.createdAt.toISOString(),
+      });
+    },
+  });
   console.log("Explanation pass complete:");
   console.log(`  Flags processed: ${explainResult.totalProcessed}`);
   console.log(`  Explanations generated: ${explainResult.totalExplained}`);

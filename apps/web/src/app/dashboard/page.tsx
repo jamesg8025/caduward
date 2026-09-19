@@ -14,6 +14,7 @@ import {
 import type { ReviewStatus, Severity } from "@caduward/shared";
 import Link from "next/link";
 import { FilterBar } from "./filter-bar";
+import { LiveFlags } from "./live-flags";
 
 const SEVERITY_ORDER = sql`CASE ${anomalyFlags.severity}
   WHEN 'critical' THEN 0
@@ -99,6 +100,8 @@ export default async function DashboardPage({ searchParams }: Props) {
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Anomaly Flags</h1>
         <span style={{ fontSize: 14, color: "#666" }}>{total} total flags</span>
       </div>
+
+      <LiveFlags />
 
       <FilterBar currentSeverity={params.severity} currentStatus={params.status} />
 
