@@ -1,21 +1,18 @@
-import { NextRequest } from "next/server";
+import { guardApi } from "@/lib/auth-guard";
 import {
-  db,
-  anomalyFlags,
-  flagExplanations,
   accessEvents,
-  staff,
-  patients,
+  anomalyFlags,
+  db,
   encounters,
   eq,
+  flagExplanations,
+  patients,
   sql,
+  staff,
 } from "@caduward/db";
-import { guardApi } from "@/lib/auth-guard";
+import type { NextRequest } from "next/server";
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const guard = await guardApi();
   if ("error" in guard) return guard.error;
 

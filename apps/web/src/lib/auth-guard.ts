@@ -48,11 +48,7 @@ export async function guardApi(options?: { role?: UserRole }) {
   if (!session) {
     return { error: Response.json({ error: "Unauthorized" }, { status: 401 }) };
   }
-  if (
-    options?.role &&
-    session.user.role !== options.role &&
-    session.user.role !== "admin"
-  ) {
+  if (options?.role && session.user.role !== options.role && session.user.role !== "admin") {
     return { error: Response.json({ error: "Forbidden" }, { status: 403 }) };
   }
   return { session };

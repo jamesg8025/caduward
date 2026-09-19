@@ -1,17 +1,14 @@
-import { NextRequest } from "next/server";
-import { db, anomalyFlags, eq } from "@caduward/db";
-import { reviewStatusSchema } from "@caduward/shared";
-import { z } from "zod";
 import { guardApi } from "@/lib/auth-guard";
+import { anomalyFlags, db, eq } from "@caduward/db";
+import { reviewStatusSchema } from "@caduward/shared";
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 
 const reviewBody = z.object({
   status: reviewStatusSchema.exclude(["open"]),
 });
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const guard = await guardApi();
   if ("error" in guard) return guard.error;
 

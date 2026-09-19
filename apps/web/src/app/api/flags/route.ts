@@ -1,7 +1,19 @@
-import { NextRequest } from "next/server";
-import { db, anomalyFlags, flagExplanations, accessEvents, staff, patients, desc, eq, sql, and, type SQL } from "@caduward/db";
-import { reviewStatusSchema, severitySchema } from "@caduward/shared";
 import { guardApi } from "@/lib/auth-guard";
+import {
+  type SQL,
+  accessEvents,
+  and,
+  anomalyFlags,
+  db,
+  desc,
+  eq,
+  flagExplanations,
+  patients,
+  sql,
+  staff,
+} from "@caduward/db";
+import { reviewStatusSchema, severitySchema } from "@caduward/shared";
+import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   const guard = await guardApi();
@@ -64,10 +76,7 @@ export async function GET(request: NextRequest) {
       .orderBy(severityOrder, desc(anomalyFlags.createdAt))
       .limit(limit)
       .offset(offset),
-    db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(anomalyFlags)
-      .where(where),
+    db.select({ count: sql<number>`count(*)::int` }).from(anomalyFlags).where(where),
   ]);
 
   return Response.json({
