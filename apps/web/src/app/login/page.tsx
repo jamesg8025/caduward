@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { signIn, signUp } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -87,7 +87,13 @@ export default function LoginPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4, boxSizing: "border-box" }}
+              style={{
+                width: "100%",
+                padding: 8,
+                border: "1px solid #ddd",
+                borderRadius: 4,
+                boxSizing: "border-box",
+              }}
             />
           </label>
         )}
@@ -99,7 +105,13 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4, boxSizing: "border-box" }}
+            style={{
+              width: "100%",
+              padding: 8,
+              border: "1px solid #ddd",
+              borderRadius: 4,
+              boxSizing: "border-box",
+            }}
           />
         </label>
 
@@ -111,13 +123,17 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={8}
-            style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4, boxSizing: "border-box" }}
+            style={{
+              width: "100%",
+              padding: 8,
+              border: "1px solid #ddd",
+              borderRadius: 4,
+              boxSizing: "border-box",
+            }}
           />
         </label>
 
-        {error && (
-          <p style={{ color: "#dc2626", fontSize: 14, marginBottom: 12 }}>{error}</p>
-        )}
+        {error && <p style={{ color: "#dc2626", fontSize: 14, marginBottom: 12 }}>{error}</p>}
 
         <button
           type="submit"
