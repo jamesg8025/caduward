@@ -22,6 +22,13 @@
       "when": 1789673571349,
       "tag": "0002_heavy_pete_wisdom",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789803715414,
+      "tag": "0003_yielding_the_order",
+      "breakpoints": true
     }
   ]
 }
