@@ -9,8 +9,9 @@ export function createClaudeProvider(apiKey: string): ExplanationProvider {
 
   return {
     async generate(prompt: string): Promise<string> {
+      const model = process.env.CADUWARD_CLAUDE_MODEL ?? "claude-haiku-4-5-20251001";
       const response = await client.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model,
         max_tokens: 1024,
         messages: [{ role: "user", content: prompt }],
       });
