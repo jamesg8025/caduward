@@ -190,15 +190,16 @@ export async function runDetectionPass(
     totalProcessed += batch.length;
     totalFlagged += flagsToInsert.length;
 
-    // If the batch was full, there may be more
     if (batch.length < batchSize) {
       hasMore = false;
-    } else {
-      // Since we're filtering unflagged events only, newly flagged ones won't
-      // appear again. But offset-based pagination with a LEFT JOIN filter
-      // can miss rows if the underlying set shrinks. Use offset=0 to re-query
-      // from the beginning each batch (the WHERE filter excludes already-flagged).
+    } else if (flagsToInsert.length > 0) {
+      // New flags were inserted — restart from offset 0 since those rows are
+      // now excluded by the WHERE filter, shifting the result set.
       offset = 0;
+    } else {
+      // No new flags in this batch — advance offset to avoid re-processing
+      // the same unflagged events indefinitely.
+      offset += batchSize;
     }
   }
 
