@@ -17,7 +17,9 @@ export const relationshipSnoopRule: DetectionRule = {
       matches.push("staff last name appears in patient emergency contact");
     }
 
-    const fired = matches.length > 0;
+    // Require both a relationship signal AND no active care encounter — a shared
+    // last name alone is not reliable given the small Synthea name pool.
+    const fired = matches.length > 0 && !ctx.hasEncounterForStaffAndPatient;
     return {
       rule: "relationship_snoop",
       fired,

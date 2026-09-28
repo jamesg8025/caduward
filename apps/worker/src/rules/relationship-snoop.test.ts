@@ -47,21 +47,28 @@ function ctx(overrides?: {
 }
 
 describe("relationshipSnoopRule", () => {
-  it("fires when staff and patient share a last name", () => {
-    const result = relationshipSnoopRule.check(ctx({ patient: { lastName: "Smith" } }));
+  it("fires when staff and patient share a last name and have no encounter", () => {
+    const result = relationshipSnoopRule.check(
+      ctx({ patient: { lastName: "Smith" }, hasEncounterForStaffAndPatient: false }),
+    );
     expect(result.fired).toBe(true);
     expect(result.details).toContain("shared last name");
   });
 
-  it("fires when staff and patient share an address", () => {
-    const result = relationshipSnoopRule.check(ctx({ patient: { address: "123 Main St" } }));
+  it("fires when staff and patient share an address and have no encounter", () => {
+    const result = relationshipSnoopRule.check(
+      ctx({ patient: { address: "123 Main St" }, hasEncounterForStaffAndPatient: false }),
+    );
     expect(result.fired).toBe(true);
     expect(result.details).toContain("shared address");
   });
 
-  it("fires when emergency contact contains staff last name", () => {
+  it("fires when emergency contact contains staff last name and have no encounter", () => {
     const result = relationshipSnoopRule.check(
-      ctx({ patient: { emergencyContact: "Jane Smith (555-1234)" } }),
+      ctx({
+        patient: { emergencyContact: "Jane Smith (555-1234)" },
+        hasEncounterForStaffAndPatient: false,
+      }),
     );
     expect(result.fired).toBe(true);
     expect(result.details).toContain("emergency contact");
@@ -75,6 +82,7 @@ describe("relationshipSnoopRule", () => {
           address: "123 Main St",
           emergencyContact: "Contact: Smith",
         },
+        hasEncounterForStaffAndPatient: false,
       }),
     );
     expect(result.fired).toBe(true);
@@ -83,13 +91,22 @@ describe("relationshipSnoopRule", () => {
     expect(result.details).toContain("emergency contact");
   });
 
+  it("does not fire when attributes match but an encounter exists", () => {
+    const result = relationshipSnoopRule.check(
+      ctx({ patient: { lastName: "Smith" }, hasEncounterForStaffAndPatient: true }),
+    );
+    expect(result.fired).toBe(false);
+  });
+
   it("does not fire when no attributes match", () => {
-    const result = relationshipSnoopRule.check(ctx());
+    const result = relationshipSnoopRule.check(ctx({ hasEncounterForStaffAndPatient: false }));
     expect(result.fired).toBe(false);
   });
 
   it("is case-insensitive for last name matching", () => {
-    const result = relationshipSnoopRule.check(ctx({ patient: { lastName: "smith" } }));
+    const result = relationshipSnoopRule.check(
+      ctx({ patient: { lastName: "smith" }, hasEncounterForStaffAndPatient: false }),
+    );
     expect(result.fired).toBe(true);
   });
 });
