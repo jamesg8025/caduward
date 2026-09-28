@@ -47,24 +47,37 @@ function ctx(overrides?: {
 }
 
 describe("vipAccessRule", () => {
-  it("fires when VIP patient is accessed without a care relationship", () => {
+  it("fires when VIP patient is accessed with no encounter and no linked encounter", () => {
     const result = vipAccessRule.check(
-      ctx({ patient: { isVip: true }, hasEncounterForStaffAndPatient: false }),
+      ctx({
+        event: { linkedEncounterId: null },
+        patient: { isVip: true },
+        hasEncounterForStaffAndPatient: false,
+      }),
     );
     expect(result.fired).toBe(true);
     expect(result.rule).toBe("vip_access");
     expect(result.details).toContain("VIP");
   });
 
-  it("does not fire when VIP patient has a documented encounter", () => {
+  it("does not fire when VIP patient has a department-level encounter", () => {
     const result = vipAccessRule.check(
-      ctx({ patient: { isVip: true }, hasEncounterForStaffAndPatient: true }),
+      ctx({ event: { linkedEncounterId: null }, patient: { isVip: true }, hasEncounterForStaffAndPatient: true }),
+    );
+    expect(result.fired).toBe(false);
+  });
+
+  it("does not fire when event has a directly linked encounter, even without department encounter", () => {
+    const result = vipAccessRule.check(
+      ctx({ event: { linkedEncounterId: "enc-1" }, patient: { isVip: true }, hasEncounterForStaffAndPatient: false }),
     );
     expect(result.fired).toBe(false);
   });
 
   it("does not fire for non-VIP patients", () => {
-    const result = vipAccessRule.check(ctx({ hasEncounterForStaffAndPatient: false }));
+    const result = vipAccessRule.check(
+      ctx({ event: { linkedEncounterId: null }, hasEncounterForStaffAndPatient: false }),
+    );
     expect(result.fired).toBe(false);
   });
 });
