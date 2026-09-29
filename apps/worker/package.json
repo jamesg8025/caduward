@@ -13,6 +13,7 @@
     "@caduward/db": "workspace:*",
     "@caduward/shared": "workspace:*",
     "@socket.io/redis-adapter": "^8.3.0",
+    "dotenv": "^18.0.3",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.9",
     "redis": "^6.2.1",

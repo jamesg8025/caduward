@@ -1,3 +1,8 @@
+import { config } from "dotenv";
+import { resolve } from "node:path";
+
+config({ path: resolve(process.cwd(), "../../.env") });
+
 import { db } from "@caduward/db";
 import { refreshRoleBaselines } from "./baselines/refresh.js";
 import { runDetectionPass } from "./detect.js";
