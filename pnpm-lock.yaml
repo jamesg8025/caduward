@@ -29,6 +29,9 @@ importers:
       better-auth:
         specifier: ^1.7.5
         version: 1.7.5(drizzle-orm@0.45.2(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@types/node@22.20.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@22.20.2)(lightningcss@1.33.0))
+      kysely:
+        specifier: ^0.29.6
+        version: 0.29.6
       next:
         specifier: ^15.1.6
         version: 15.5.25(@types/node@22.20.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -75,6 +78,9 @@ importers:
       '@socket.io/redis-adapter':
         specifier: ^8.3.0
         version: 8.3.0(socket.io-adapter@2.5.8)
+      dotenv:
+        specifier: ^18.0.3
+        version: 18.0.3
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(kysely@0.29.6)(postgres@3.4.9)
@@ -1522,6 +1528,11 @@ packages:
   detect-libc@2.1.2:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
+
+  dotenv@18.0.3:
+    resolution: {integrity: sha512-/8CJTyL817qPnfbQrJgOEcrU3fDrJkRIoXBE566wHuvIXKOCHUZhPqGPbCPi9SogjdGnreF0TlvnTgK6J/8zpA==}
+    engines: {node: '>=12'}
+    hasBin: true
 
   drizzle-kit@0.27.2:
     resolution: {integrity: sha512-F6cFZ1wxa9XzFyeeQsp/0/lIzUbDuQjS8/njpYBDWa+wdWmXuY+Z/X2hHFK/9PGHZkv3c9mER+mVWfKlp/B6Vw==}
@@ -2975,6 +2986,8 @@ snapshots:
 
   detect-libc@2.1.2:
     optional: true
+
+  dotenv@18.0.3: {}
 
   drizzle-kit@0.27.2:
     dependencies:
