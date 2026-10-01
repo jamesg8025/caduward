@@ -30,7 +30,7 @@ Real PHI never touches this project. The patient population and encounters are g
 | ORM / DB | Drizzle ORM + PostgreSQL + pgvector |
 | Auth | better-auth |
 | Realtime | Socket.IO |
-| AI | Claude API (Sonnet), structured JSON output |
+| AI | Claude API (Haiku 4.5), structured JSON output |
 | Validation | Zod |
 | Package manager | pnpm (workspaces) |
 | Lint/format | Biome |
