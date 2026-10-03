@@ -70,6 +70,7 @@ export async function seedDatabase(data: SeedData, db: PostgresJsDatabase): Prom
       shiftEnd: s.shiftEnd,
       address: s.address,
       isActive: s.isActive,
+      patientId: s.patientId,
     })),
   );
 

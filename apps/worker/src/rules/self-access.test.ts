@@ -21,6 +21,7 @@ const baseStaff: StaffRow = {
   shiftEnd: "16:00",
   address: "123 Main St",
   isActive: true,
+  patientId: null,
 };
 
 const basePatient: PatientRow = {
@@ -47,36 +48,34 @@ function ctx(overrides?: {
 }
 
 describe("selfAccessRule", () => {
-  it("fires when staff and patient have matching first and last name", () => {
+  it("fires when staff.patientId matches event.patientId", () => {
     const result = selfAccessRule.check(
-      ctx({ patient: { firstName: "Alice", lastName: "Smith" } }),
+      ctx({ staff: { patientId: "patient-1" } }),
     );
     expect(result.fired).toBe(true);
     expect(result.rule).toBe("self_access");
     expect(result.details).toContain("Alice Smith");
   });
 
-  it("does not fire when only first name matches", () => {
+  it("does not fire when staff.patientId is null", () => {
+    const result = selfAccessRule.check(ctx({ staff: { patientId: null } }));
+    expect(result.fired).toBe(false);
+  });
+
+  it("does not fire when staff.patientId does not match event.patientId", () => {
     const result = selfAccessRule.check(
-      ctx({ patient: { firstName: "Alice", lastName: "Jones" } }),
+      ctx({ staff: { patientId: "patient-99" } }),
     );
     expect(result.fired).toBe(false);
   });
 
-  it("does not fire when only last name matches", () => {
-    const result = selfAccessRule.check(ctx({ patient: { firstName: "Bob", lastName: "Smith" } }));
-    expect(result.fired).toBe(false);
-  });
-
-  it("does not fire when no names match", () => {
-    const result = selfAccessRule.check(ctx());
-    expect(result.fired).toBe(false);
-  });
-
-  it("is case-insensitive", () => {
+  it("does not fire on coincidental name match without patientId link", () => {
     const result = selfAccessRule.check(
-      ctx({ patient: { firstName: "alice", lastName: "smith" } }),
+      ctx({
+        staff: { firstName: "Bob", lastName: "Jones", patientId: null },
+        patient: { firstName: "Bob", lastName: "Jones" },
+      }),
     );
-    expect(result.fired).toBe(true);
+    expect(result.fired).toBe(false);
   });
 });
