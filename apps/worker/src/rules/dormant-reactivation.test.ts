@@ -21,6 +21,7 @@ const baseStaff: StaffRow = {
   shiftEnd: "16:00",
   address: "123 Main St",
   isActive: true,
+  patientId: null,
 };
 
 const basePatient: PatientRow = {

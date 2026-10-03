@@ -21,6 +21,7 @@ export interface StaffRow {
   shiftEnd: string;
   address: string;
   isActive: boolean;
+  patientId: string | null;
 }
 
 export interface PatientRow {

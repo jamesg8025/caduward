@@ -66,6 +66,7 @@ const STAFF = [
     shiftEnd: "16:00",
     address: "789 Elm St",
     isActive: true,
+    patientId: "33333333-3333-4333-8333-333333333333", // self-access candidate
   },
   {
     id: "bbbb2222-2222-4222-8222-222222222222",
@@ -77,6 +78,7 @@ const STAFF = [
     shiftEnd: "17:00",
     address: "321 Pine Rd",
     isActive: false,
+    patientId: null,
   },
 ];
 

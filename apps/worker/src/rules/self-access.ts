@@ -3,9 +3,7 @@ import type { DetectionRule } from "./types.js";
 export const selfAccessRule: DetectionRule = {
   name: "self_access",
   check(ctx) {
-    const fired =
-      ctx.staff.firstName.toLowerCase() === ctx.patient.firstName.toLowerCase() &&
-      ctx.staff.lastName.toLowerCase() === ctx.patient.lastName.toLowerCase();
+    const fired = ctx.staff.patientId !== null && ctx.staff.patientId === ctx.event.patientId;
     return {
       rule: "self_access",
       fired,

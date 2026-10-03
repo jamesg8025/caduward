@@ -74,6 +74,7 @@ export const staff = pgTable("staff", {
   shiftEnd: time("shift_end").notNull(),
   address: text("address").notNull(),
   isActive: boolean("is_active").notNull().default(true),
+  patientId: uuid("patient_id").references(() => patients.id),
 });
 
 export const accessEvents = pgTable(

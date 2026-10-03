@@ -12,6 +12,8 @@ export interface GeneratedStaff {
   shiftEnd: string;
   address: string;
   isActive: boolean;
+  /** When set, this staff member IS this patient (self-access scenario). */
+  patientId: string | null;
 }
 
 const FIRST_NAMES = [
@@ -216,13 +218,15 @@ export function generateStaff(
     let firstName: string;
     let lastName: string;
     let address: string;
+    let patientId: string | null = null;
 
     if (i < selfAccessCount && i < patients.length) {
-      // Self-access candidates: mirror a patient's identity
+      // Self-access candidates: mirror a patient's identity and link by ID
       const patient = patients[i];
       firstName = patient.firstName;
       lastName = patient.lastName;
       address = patient.address;
+      patientId = patient.id;
     } else if (i < selfAccessCount + snoopCount) {
       // Relationship-snoop candidates: share last name with a patient
       const patient = rng.pick(patients);
@@ -245,6 +249,7 @@ export function generateStaff(
       shiftEnd: shift.end,
       address,
       isActive: !isDormant,
+      patientId,
     });
   }
 
