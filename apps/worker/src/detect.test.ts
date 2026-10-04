@@ -250,6 +250,44 @@ describe("runDetectionPass", () => {
 
     expect(secondRun).toHaveLength(firstRun.length);
   });
+
+  describe("batching", () => {
+    // Ids sort in this order; flagged (no encounter) and clean events are interleaved
+    // so flags land in the middle of batches as well as at batch boundaries.
+    const eventId = (n: number) => `dddd0000-0000-4000-8000-00000000000${n}`;
+    const BATCH_EVENTS = [1, 2, 3, 4, 5, 6, 7].map((n) => ({
+      id: eventId(n),
+      staffId: "bbbb1111-1111-4111-8111-111111111111",
+      patientId: "22222222-2222-4222-8222-222222222222",
+      timestamp: new Date("2025-01-10T10:00:00Z"),
+      accessType: "view" as const,
+      linkedEncounterId:
+        n === 1 || n === 4 || n === 5 ? null : "aaaa1111-1111-4111-8111-111111111111",
+    }));
+
+    it("evaluates each event exactly once when batches contain flagged events", async () => {
+      await db.insert(schema.accessEvents).values(BATCH_EVENTS);
+
+      const result = await runDetectionPass(db, { batchSize: 2 });
+
+      expect(result.totalProcessed).toBe(7);
+      expect(result.totalFlagged).toBe(3);
+      const flagged = await db.select().from(schema.anomalyFlags);
+      expect(flagged.map((f) => f.accessEventId).sort()).toEqual(
+        [eventId(1), eventId(4), eventId(5)].sort(),
+      );
+    });
+
+    it("re-evaluates only unflagged events on a second pass", async () => {
+      await db.insert(schema.accessEvents).values(BATCH_EVENTS);
+      await runDetectionPass(db, { batchSize: 2 });
+
+      const second = await runDetectionPass(db, { batchSize: 2 });
+
+      expect(second.totalProcessed).toBe(4);
+      expect(second.totalFlagged).toBe(0);
+    });
+  });
 });
 
 describe("refreshRoleBaselines", () => {
