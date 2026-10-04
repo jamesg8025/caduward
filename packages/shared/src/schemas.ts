@@ -49,6 +49,8 @@ export const generatorConfigSchema = z.object({
   seed: z.number().int(),
   staffCount: z.number().int().positive().default(200),
   timeWindowDays: z.number().int().positive().default(30),
+  /** Fraction of normal events that are legitimate break-glass accesses with no linked encounter. */
+  benignNoEncounterRate: z.number().min(0).max(1).default(0.005),
 });
 
 export type GeneratorConfig = z.infer<typeof generatorConfigSchema>;
@@ -67,6 +69,7 @@ export const DEFAULT_GENERATOR_CONFIG: GeneratorConfig = {
   seed: 42,
   staffCount: 200,
   timeWindowDays: 30,
+  benignNoEncounterRate: 0.005,
 };
 
 // --- Phase 2: Detection engine types ---
