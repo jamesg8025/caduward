@@ -7,7 +7,7 @@ import {
   staff,
 } from "@caduward/db";
 import type { AnomalyType } from "@caduward/shared";
-import { eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, isNull } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { computeFeatureVector } from "./baselines/features.js";
 import { runRules } from "./rules/index.js";
@@ -28,6 +28,10 @@ const DEFAULT_SIMILARITY_THRESHOLD = 0.7;
  * Run a detection pass over all unprocessed access events.
  * Fetches events in batches, runs rule-based checks and pattern-deviation,
  * then writes anomaly_flags for events that trigger at least one rule.
+ *
+ * Batches are paged by keyset (ordered by event id, resuming after the last id
+ * seen), so each unflagged event is evaluated exactly once per pass regardless
+ * of how many flags earlier batches inserted.
  */
 export async function runDetectionPass(
   database: PostgresJsDatabase,
@@ -47,10 +51,9 @@ export async function runDetectionPass(
     baselineMap.set(`${b.role}::${b.department}`, b.centroid);
   }
 
-  let hasMore = true;
-  let offset = 0;
+  let lastSeenId: string | null = null;
 
-  while (hasMore) {
+  while (true) {
     // Fetch a batch of unprocessed events (ground-truth fields excluded from select)
     const batch = await database
       .select({
@@ -63,14 +66,15 @@ export async function runDetectionPass(
       })
       .from(accessEvents)
       .leftJoin(anomalyFlags, eq(accessEvents.id, anomalyFlags.accessEventId))
-      .where(isNull(anomalyFlags.id))
-      .limit(batchSize)
-      .offset(offset);
+      .where(
+        lastSeenId === null
+          ? isNull(anomalyFlags.id)
+          : and(isNull(anomalyFlags.id), gt(accessEvents.id, lastSeenId)),
+      )
+      .orderBy(asc(accessEvents.id))
+      .limit(batchSize);
 
-    if (batch.length === 0) {
-      hasMore = false;
-      break;
-    }
+    if (batch.length === 0) break;
 
     // Collect unique staff and patient IDs
     const staffIds = [...new Set(batch.map((e) => e.staffId))];
@@ -190,17 +194,8 @@ export async function runDetectionPass(
     totalProcessed += batch.length;
     totalFlagged += flagsToInsert.length;
 
-    if (batch.length < batchSize) {
-      hasMore = false;
-    } else if (flagsToInsert.length > 0) {
-      // New flags were inserted — restart from offset 0 since those rows are
-      // now excluded by the WHERE filter, shifting the result set.
-      offset = 0;
-    } else {
-      // No new flags in this batch — advance offset to avoid re-processing
-      // the same unflagged events indefinitely.
-      offset += batchSize;
-    }
+    if (batch.length < batchSize) break;
+    lastSeenId = batch[batch.length - 1].id;
   }
 
   return { totalProcessed, totalFlagged, ruleBreakdown };
