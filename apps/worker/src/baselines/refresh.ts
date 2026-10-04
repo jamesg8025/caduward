@@ -6,8 +6,8 @@ import {
   roleBaselines,
   staff,
 } from "@caduward/db";
+import type { Database } from "@caduward/db";
 import { eq, isNull, sql } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { computeCentroid } from "./compute.js";
 import { computeFeatureVector } from "./features.js";
 
@@ -15,9 +15,7 @@ import { computeFeatureVector } from "./features.js";
  * Recompute role baseline centroids from access events that have not been flagged.
  * Upserts into role_baselines, one row per (role, department).
  */
-export async function refreshRoleBaselines(
-  database: PostgresJsDatabase,
-): Promise<{ rolesUpdated: number }> {
+export async function refreshRoleBaselines(database: Database): Promise<{ rolesUpdated: number }> {
   // Fetch unflagged access events with their staff, patient, and encounter data.
   // We exclude ground-truth fields from the select.
   const rows = await database
