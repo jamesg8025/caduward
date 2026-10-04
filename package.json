@@ -7,6 +7,7 @@
     "build": "pnpm -r build",
     "test": "vitest --no-file-parallelism",
     "lint": "biome check .",
+    "typecheck": "pnpm -r --no-bail exec tsc --noEmit -p tsconfig.json",
     "format": "biome format --write ."
   },
   "devDependencies": {
