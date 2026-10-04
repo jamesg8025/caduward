@@ -63,14 +63,22 @@ describe("vipAccessRule", () => {
 
   it("does not fire when VIP patient has a department-level encounter", () => {
     const result = vipAccessRule.check(
-      ctx({ event: { linkedEncounterId: null }, patient: { isVip: true }, hasEncounterForStaffAndPatient: true }),
+      ctx({
+        event: { linkedEncounterId: null },
+        patient: { isVip: true },
+        hasEncounterForStaffAndPatient: true,
+      }),
     );
     expect(result.fired).toBe(false);
   });
 
   it("does not fire when event has a directly linked encounter, even without department encounter", () => {
     const result = vipAccessRule.check(
-      ctx({ event: { linkedEncounterId: "enc-1" }, patient: { isVip: true }, hasEncounterForStaffAndPatient: false }),
+      ctx({
+        event: { linkedEncounterId: "enc-1" },
+        patient: { isVip: true },
+        hasEncounterForStaffAndPatient: false,
+      }),
     );
     expect(result.fired).toBe(false);
   });

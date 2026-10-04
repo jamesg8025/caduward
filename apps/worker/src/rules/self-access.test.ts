@@ -49,9 +49,7 @@ function ctx(overrides?: {
 
 describe("selfAccessRule", () => {
   it("fires when staff.patientId matches event.patientId", () => {
-    const result = selfAccessRule.check(
-      ctx({ staff: { patientId: "patient-1" } }),
-    );
+    const result = selfAccessRule.check(ctx({ staff: { patientId: "patient-1" } }));
     expect(result.fired).toBe(true);
     expect(result.rule).toBe("self_access");
     expect(result.details).toContain("Alice Smith");
@@ -63,9 +61,7 @@ describe("selfAccessRule", () => {
   });
 
   it("does not fire when staff.patientId does not match event.patientId", () => {
-    const result = selfAccessRule.check(
-      ctx({ staff: { patientId: "patient-99" } }),
-    );
+    const result = selfAccessRule.check(ctx({ staff: { patientId: "patient-99" } }));
     expect(result.fired).toBe(false);
   });
 
