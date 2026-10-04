@@ -33,6 +33,7 @@ describe("@caduward/worker", () => {
         shiftEnd: "16:00",
         address: "123 Main St",
         isActive: true,
+        patientId: null,
       },
       patient: {
         id: "p1",

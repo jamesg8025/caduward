@@ -1,6 +1,5 @@
-import { accessEvents, encounters, patients, staff } from "@caduward/db";
+import { type Database, accessEvents, encounters, patients, staff } from "@caduward/db";
 import { sql } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type { TransformedEncounter, TransformedPatient } from "./fhir/transform.js";
 import type { GeneratedAccessEvent } from "./generators/access-events.js";
 import type { GeneratedStaff } from "./generators/staff.js";
@@ -15,8 +14,8 @@ export interface SeedData {
 }
 
 async function batchInsert<T extends Record<string, unknown>>(
-  db: PostgresJsDatabase,
-  table: Parameters<PostgresJsDatabase["insert"]>[0],
+  db: Database,
+  table: Parameters<Database["insert"]>[0],
   rows: T[],
 ): Promise<void> {
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
@@ -25,7 +24,7 @@ async function batchInsert<T extends Record<string, unknown>>(
   }
 }
 
-export async function seedDatabase(data: SeedData, db: PostgresJsDatabase): Promise<void> {
+export async function seedDatabase(data: SeedData, db: Database): Promise<void> {
   // Truncate in reverse FK order
   await db.execute(sql`TRUNCATE TABLE access_events, encounters, staff, patients CASCADE`);
 

@@ -57,6 +57,7 @@ const STAFF: GeneratedStaff[] = [
     shiftEnd: "14:00",
     address: "789 Elm St",
     isActive: true,
+    patientId: null,
   },
 ];
 
