@@ -19,7 +19,7 @@ async function main() {
   );
 
   // 2. Read and transform FHIR bundle
-  const fixturePath = join(import.meta.dirname, "..", "fixtures", "synthea-bundle.json");
+  const fixturePath = join(__dirname, "..", "fixtures", "synthea-bundle.json");
   const raw = JSON.parse(readFileSync(fixturePath, "utf-8"));
   const bundle = fhirBundleSchema.parse(raw);
 

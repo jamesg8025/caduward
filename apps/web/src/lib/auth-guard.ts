@@ -4,6 +4,11 @@ import { auth } from "./auth";
 
 type UserRole = "admin" | "reviewer";
 
+type Session = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
+
+/** Result of guardApi: either an authenticated session or an error response to return. */
+export type GuardResult = { session: Session } | { error: Response };
+
 /**
  * Get the current session from the request headers. Returns null if not
  * authenticated.
@@ -43,7 +48,7 @@ export async function requireRole(role: UserRole) {
  * Guard an API route handler. Returns the session if authenticated, or a 401
  * JSON response if not. Optionally checks for a required role.
  */
-export async function guardApi(options?: { role?: UserRole }) {
+export async function guardApi(options?: { role?: UserRole }): Promise<GuardResult> {
   const session = await getSession();
   if (!session) {
     return { error: Response.json({ error: "Unauthorized" }, { status: 401 }) };

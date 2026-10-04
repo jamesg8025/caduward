@@ -34,6 +34,7 @@ export async function refreshRoleBaselines(database: Database): Promise<{ rolesU
       staffFirstName: staff.firstName,
       staffLastName: staff.lastName,
       staffIsActive: staff.isActive,
+      staffPatientId: staff.patientId,
       patientFirstName: patients.firstName,
       patientLastName: patients.lastName,
       patientAddress: patients.address,
@@ -72,6 +73,7 @@ export async function refreshRoleBaselines(database: Database): Promise<{ rolesU
         shiftEnd: row.staffShiftEnd,
         address: row.staffAddress,
         isActive: row.staffIsActive,
+        patientId: row.staffPatientId,
       },
       {
         id: row.patientId,
