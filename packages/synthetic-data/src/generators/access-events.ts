@@ -19,7 +19,13 @@ export interface AccessEventsConfig {
   anomalyRate: number;
   anomalyMix: Partial<Record<AnomalyType, number>>;
   timeWindowDays: number;
+  /** Fraction of normal events that are legitimate break-glass accesses (no linked encounter). */
+  benignNoEncounterRate?: number;
 }
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+/** Only used when there are no encounters to draw activity dates from. */
+const FALLBACK_BASE_DATE = new Date("2025-01-10T00:00:00Z");
 
 function generateUuid(rng: SeededRandom): string {
   const hex = "0123456789abcdef";
@@ -50,6 +56,34 @@ function buildEncounterIndex(
   return index;
 }
 
+function startOfUtcDay(date: Date): Date {
+  const day = new Date(date.getTime());
+  day.setUTCHours(0, 0, 0, 0);
+  return day;
+}
+
+/**
+ * Midnight (UTC) of a randomly chosen encounter's day. Injected events draw their dates
+ * from here so they share the normal-event date range instead of standing apart from it.
+ */
+function randomActivityDay(encounters: TransformedEncounter[], rng: SeededRandom): Date {
+  if (encounters.length === 0) {
+    return new Date(FALLBACK_BASE_DATE.getTime() + rng.int(0, 30) * MS_PER_DAY);
+  }
+  return startOfUtcDay(rng.pick(encounters).scheduledStart);
+}
+
+/** Pick a patient from the pool, never the staff member's own patient record. */
+function pickPatientOtherThanSelf(
+  pool: TransformedPatient[],
+  staffMember: GeneratedStaff,
+  rng: SeededRandom,
+): TransformedPatient {
+  if (staffMember.patientId === null) return rng.pick(pool);
+  const others = pool.filter((p) => p.id !== staffMember.patientId);
+  return rng.pick(others.length > 0 ? others : pool);
+}
+
 function parseTime(time: string): { hours: number; minutes: number } {
   const [hours, minutes] = time.split(":").map(Number);
   return { hours, minutes };
@@ -67,24 +101,55 @@ function isWithinShift(date: Date, shiftStart: string, shiftEnd: string): boolea
   return hour >= start || hour < end;
 }
 
+/**
+ * Generate normal (non-anomalous) access events. A `benignNoEncounterRate` share of them
+ * are legitimate break-glass accesses by Emergency staff with no linked encounter, so a
+ * missing encounter is a signal rather than a perfect proxy for the ground-truth label.
+ * Staff never access their own patient record here; that is reserved for self_access.
+ */
 export function generateNormalEvents(
   patients: TransformedPatient[],
   encounters: TransformedEncounter[],
   activeStaff: GeneratedStaff[],
   count: number,
   rng: SeededRandom,
+  benignNoEncounterRate = 0,
 ): GeneratedAccessEvent[] {
   const encounterIndex = buildEncounterIndex(encounters);
   const events: GeneratedAccessEvent[] = [];
 
-  for (let i = 0; i < count; i++) {
-    const staffMember = rng.pick(activeStaff);
+  // Find patients who have encounters
+  const patientsWithEncounters = patients.filter(
+    (p) => (encounterIndex.get(p.id)?.length ?? 0) > 0,
+  );
+  const carePool = patientsWithEncounters.length > 0 ? patientsWithEncounters : patients;
 
-    // Find patients who have encounters
-    const patientsWithEncounters = patients.filter(
-      (p) => (encounterIndex.get(p.id)?.length ?? 0) > 0,
-    );
-    const patient = rng.pick(patientsWithEncounters.length > 0 ? patientsWithEncounters : patients);
+  const emergencyStaff = activeStaff.filter((s) => s.department === "Emergency");
+  const breakGlassStaff = emergencyStaff.length > 0 ? emergencyStaff : activeStaff;
+  const breakGlassCount = Math.floor(count * benignNoEncounterRate);
+
+  for (let i = 0; i < breakGlassCount; i++) {
+    const staffMember = rng.pick(breakGlassStaff);
+    const patient = pickPatientOtherThanSelf(patients, staffMember, rng);
+    const timestamp = randomActivityDay(encounters, rng);
+    const shiftStart = parseTime(staffMember.shiftStart);
+    timestamp.setUTCHours(shiftStart.hours + rng.int(0, 6), rng.int(0, 59));
+
+    events.push({
+      id: generateUuid(rng),
+      staffId: staffMember.id,
+      patientId: patient.id,
+      timestamp,
+      accessType: rng.weightedPick({ view: 0.8, edit: 0.15, print: 0.05 }),
+      linkedEncounterId: null,
+      isSeededAnomaly: false,
+      seededAnomalyType: null,
+    });
+  }
+
+  for (let i = breakGlassCount; i < count; i++) {
+    const staffMember = rng.pick(activeStaff);
+    const patient = pickPatientOtherThanSelf(carePool, staffMember, rng);
     const patientEncounters = encounterIndex.get(patient.id) ?? [];
 
     let encounter: TransformedEncounter | null = null;
@@ -96,11 +161,8 @@ export function generateNormalEvents(
       const offsetMs = rng.int(-30, 120) * 60 * 1000;
       timestamp = new Date(encounter.scheduledStart.getTime() + offsetMs);
     } else {
-      // Rare: patient without encounters, pick a reasonable time during shift
-      const shiftStart = parseTime(staffMember.shiftStart);
-      const baseDate = new Date();
-      baseDate.setUTCHours(shiftStart.hours + rng.int(0, 6), rng.int(0, 59), 0, 0);
-      timestamp = baseDate;
+      // Rare: patient without encounters; the shift-hour adjustment below sets the time
+      timestamp = randomActivityDay(encounters, rng);
     }
 
     // Adjust timestamp to be within staff shift
@@ -133,7 +195,14 @@ export function generateAccessEvents(
   const anomalyCount = Math.floor(config.totalEvents * config.anomalyRate);
   const normalCount = config.totalEvents - anomalyCount;
 
-  const normalEvents = generateNormalEvents(patients, encounters, activeStaff, normalCount, rng);
+  const normalEvents = generateNormalEvents(
+    patients,
+    encounters,
+    activeStaff,
+    normalCount,
+    rng,
+    config.benignNoEncounterRate ?? 0,
+  );
 
   const anomalousEvents = injectAnomalies(
     patients,
@@ -165,13 +234,16 @@ export function injectAnomalies(
   const patientLastNames = new Set(patients.map((p) => p.lastName));
   const snoopStaff = activeStaff.filter((s) => patientLastNames.has(s.lastName));
 
-  // Find self-access candidates
-  const patientNameMap = new Map(patients.map((p) => [`${p.firstName} ${p.lastName}`, p]));
+  // Find self-access candidates: staff linked to their own patient record
+  const patientById = new Map(patients.map((p) => [p.id, p]));
   const selfAccessCandidates = activeStaff
-    .map((s) => ({ staff: s, patient: patientNameMap.get(`${s.firstName} ${s.lastName}`) }))
+    .map((s) => ({ staff: s, patient: s.patientId ? patientById.get(s.patientId) : undefined }))
     .filter(
       (c): c is { staff: GeneratedStaff; patient: TransformedPatient } => c.patient !== undefined,
     );
+
+  const encounterIndex = buildEncounterIndex(encounters);
+  const patientsWithEncounters = patients.filter((p) => encounterIndex.has(p.id));
 
   // Distribute anomalies by type
   const distribution = distributeAnomalies(totalAnomalies, anomalyMix);
@@ -181,6 +253,8 @@ export function injectAnomalies(
       const event = generateAnomalyByType(type, {
         patients,
         encounters,
+        encounterIndex,
+        carePool: patientsWithEncounters.length > 0 ? patientsWithEncounters : patients,
         activeStaff,
         inactiveStaff,
         vipPatients,
@@ -220,6 +294,9 @@ function distributeAnomalies(
 interface AnomalyContext {
   patients: TransformedPatient[];
   encounters: TransformedEncounter[];
+  encounterIndex: Map<string, TransformedEncounter[]>;
+  /** Patients with at least one encounter (all patients if none have encounters). */
+  carePool: TransformedPatient[];
   activeStaff: GeneratedStaff[];
   inactiveStaff: GeneratedStaff[];
   vipPatients: TransformedPatient[];
@@ -251,11 +328,16 @@ function generateAnomalyByType(
   }
 }
 
+/** One of the patient's encounters, so the anomaly is not also given away by a missing link. */
+function pickPatientEncounter(patientId: string, ctx: AnomalyContext): TransformedEncounter | null {
+  const patientEncounters = ctx.encounterIndex.get(patientId) ?? [];
+  return patientEncounters.length > 0 ? ctx.rng.pick(patientEncounters) : null;
+}
+
 function generateNoEncounterAnomaly(ctx: AnomalyContext): GeneratedAccessEvent {
   const staffMember = ctx.rng.pick(ctx.activeStaff);
   const patient = ctx.rng.pick(ctx.patients);
-  const baseDate = new Date("2025-01-10T00:00:00Z");
-  const timestamp = new Date(baseDate.getTime() + ctx.rng.int(0, 30) * 24 * 60 * 60 * 1000);
+  const timestamp = randomActivityDay(ctx.encounters, ctx.rng);
   const shiftStart = parseTime(staffMember.shiftStart);
   timestamp.setUTCHours(shiftStart.hours + ctx.rng.int(0, 6), ctx.rng.int(0, 59));
 
@@ -273,9 +355,11 @@ function generateNoEncounterAnomaly(ctx: AnomalyContext): GeneratedAccessEvent {
 
 function generateOffShiftAnomaly(ctx: AnomalyContext): GeneratedAccessEvent {
   const staffMember = ctx.rng.pick(ctx.activeStaff);
-  const patient = ctx.rng.pick(ctx.patients);
-  const baseDate = new Date("2025-01-10T00:00:00Z");
-  const timestamp = new Date(baseDate.getTime() + ctx.rng.int(0, 30) * 24 * 60 * 60 * 1000);
+  const patient = pickPatientOtherThanSelf(ctx.carePool, staffMember, ctx.rng);
+  const encounter = pickPatientEncounter(patient.id, ctx);
+  const timestamp = encounter
+    ? startOfUtcDay(encounter.scheduledStart)
+    : randomActivityDay(ctx.encounters, ctx.rng);
 
   // Set time outside shift
   const shiftEnd = parseTime(staffMember.shiftEnd);
@@ -294,7 +378,7 @@ function generateOffShiftAnomaly(ctx: AnomalyContext): GeneratedAccessEvent {
     patientId: patient.id,
     timestamp,
     accessType: ctx.rng.pick(["view", "edit", "print"] as const),
-    linkedEncounterId: null,
+    linkedEncounterId: encounter?.id ?? null,
     isSeededAnomaly: true,
     seededAnomalyType: "off_shift",
   };
@@ -309,8 +393,7 @@ function generateRelationshipSnoopAnomaly(ctx: AnomalyContext): GeneratedAccessE
   const patient =
     matchingPatients.length > 0 ? ctx.rng.pick(matchingPatients) : ctx.rng.pick(ctx.patients);
 
-  const baseDate = new Date("2025-01-10T00:00:00Z");
-  const timestamp = new Date(baseDate.getTime() + ctx.rng.int(0, 30) * 24 * 60 * 60 * 1000);
+  const timestamp = randomActivityDay(ctx.encounters, ctx.rng);
   const shiftStart = parseTime(staffMember.shiftStart);
   timestamp.setUTCHours(shiftStart.hours + ctx.rng.int(0, 6), ctx.rng.int(0, 59));
 
@@ -331,8 +414,7 @@ function generateVipAccessAnomaly(ctx: AnomalyContext): GeneratedAccessEvent {
     ctx.vipPatients.length > 0 ? ctx.rng.pick(ctx.vipPatients) : ctx.rng.pick(ctx.patients);
   const staffMember = ctx.rng.pick(ctx.activeStaff);
 
-  const baseDate = new Date("2025-01-10T00:00:00Z");
-  const timestamp = new Date(baseDate.getTime() + ctx.rng.int(0, 30) * 24 * 60 * 60 * 1000);
+  const timestamp = randomActivityDay(ctx.encounters, ctx.rng);
   const shiftStart = parseTime(staffMember.shiftStart);
   timestamp.setUTCHours(shiftStart.hours + ctx.rng.int(0, 6), ctx.rng.int(0, 59));
 
@@ -348,22 +430,16 @@ function generateVipAccessAnomaly(ctx: AnomalyContext): GeneratedAccessEvent {
   };
 }
 
-function generateSelfAccessAnomaly(ctx: AnomalyContext): GeneratedAccessEvent {
-  let staffMember: GeneratedStaff;
-  let patient: TransformedPatient;
+function generateSelfAccessAnomaly(ctx: AnomalyContext): GeneratedAccessEvent | null {
+  // Without a staff member linked to a patient record there is no genuine self-access;
+  // skip rather than emit an event whose label doesn't match what happened.
+  if (ctx.selfAccessCandidates.length === 0) return null;
+  const { staff: staffMember, patient } = ctx.rng.pick(ctx.selfAccessCandidates);
 
-  if (ctx.selfAccessCandidates.length > 0) {
-    const candidate = ctx.rng.pick(ctx.selfAccessCandidates);
-    staffMember = candidate.staff;
-    patient = candidate.patient;
-  } else {
-    // Fallback: pick any staff and any patient
-    staffMember = ctx.rng.pick(ctx.activeStaff);
-    patient = ctx.rng.pick(ctx.patients);
-  }
-
-  const baseDate = new Date("2025-01-10T00:00:00Z");
-  const timestamp = new Date(baseDate.getTime() + ctx.rng.int(0, 30) * 24 * 60 * 60 * 1000);
+  const encounter = pickPatientEncounter(patient.id, ctx);
+  const timestamp = encounter
+    ? startOfUtcDay(encounter.scheduledStart)
+    : randomActivityDay(ctx.encounters, ctx.rng);
   const shiftStart = parseTime(staffMember.shiftStart);
   timestamp.setUTCHours(shiftStart.hours + ctx.rng.int(0, 6), ctx.rng.int(0, 59));
 
@@ -373,7 +449,7 @@ function generateSelfAccessAnomaly(ctx: AnomalyContext): GeneratedAccessEvent {
     patientId: patient.id,
     timestamp,
     accessType: "view",
-    linkedEncounterId: null,
+    linkedEncounterId: encounter?.id ?? null,
     isSeededAnomaly: true,
     seededAnomalyType: "self_access",
   };
@@ -382,10 +458,11 @@ function generateSelfAccessAnomaly(ctx: AnomalyContext): GeneratedAccessEvent {
 function generateDormantReactivationAnomaly(ctx: AnomalyContext): GeneratedAccessEvent {
   const staffMember =
     ctx.inactiveStaff.length > 0 ? ctx.rng.pick(ctx.inactiveStaff) : ctx.rng.pick(ctx.activeStaff);
-  const patient = ctx.rng.pick(ctx.patients);
-
-  const baseDate = new Date("2025-01-10T00:00:00Z");
-  const timestamp = new Date(baseDate.getTime() + ctx.rng.int(0, 30) * 24 * 60 * 60 * 1000);
+  const patient = ctx.rng.pick(ctx.carePool);
+  const encounter = pickPatientEncounter(patient.id, ctx);
+  const timestamp = encounter
+    ? startOfUtcDay(encounter.scheduledStart)
+    : randomActivityDay(ctx.encounters, ctx.rng);
   timestamp.setUTCHours(ctx.rng.int(0, 23), ctx.rng.int(0, 59));
 
   return {
@@ -394,7 +471,7 @@ function generateDormantReactivationAnomaly(ctx: AnomalyContext): GeneratedAcces
     patientId: patient.id,
     timestamp,
     accessType: ctx.rng.pick(["view", "edit", "print"] as const),
-    linkedEncounterId: null,
+    linkedEncounterId: encounter?.id ?? null,
     isSeededAnomaly: true,
     seededAnomalyType: "dormant_reactivation",
   };
