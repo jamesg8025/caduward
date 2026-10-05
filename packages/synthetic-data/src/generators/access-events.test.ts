@@ -72,6 +72,7 @@ const STAFF: GeneratedStaff[] = [
     shiftEnd: "14:00",
     address: "123 Main St, Springfield, MA, 01101",
     isActive: true,
+    patientId: null,
   },
   {
     id: "s2",
@@ -83,6 +84,7 @@ const STAFF: GeneratedStaff[] = [
     shiftEnd: "22:00",
     address: "222 Pine St, Riverside, MA, 02101",
     isActive: true,
+    patientId: null,
   },
   {
     id: "s3",
@@ -94,6 +96,7 @@ const STAFF: GeneratedStaff[] = [
     shiftEnd: "16:00",
     address: "333 Oak Ave, Lakewood, CT, 06001",
     isActive: true,
+    patientId: null,
   },
   {
     id: "s4",
@@ -105,6 +108,7 @@ const STAFF: GeneratedStaff[] = [
     shiftEnd: "06:00",
     address: "444 Elm St, Brookside, NY, 10002",
     isActive: false, // dormant
+    patientId: null,
   },
 ];
 

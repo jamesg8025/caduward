@@ -6,9 +6,9 @@ import {
   roleBaselines,
   staff,
 } from "@caduward/db";
+import type { Database } from "@caduward/db";
 import type { AnomalyType } from "@caduward/shared";
 import { eq, inArray, isNull } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { computeFeatureVector } from "./baselines/features.js";
 import { runRules } from "./rules/index.js";
 import { checkPatternDeviation } from "./rules/pattern-deviation.js";
@@ -30,7 +30,7 @@ const DEFAULT_SIMILARITY_THRESHOLD = 0.7;
  * then writes anomaly_flags for events that trigger at least one rule.
  */
 export async function runDetectionPass(
-  database: PostgresJsDatabase,
+  database: Database,
   options?: { batchSize?: number; similarityThreshold?: number },
 ): Promise<DetectionPassResult> {
   const batchSize = options?.batchSize ?? DEFAULT_BATCH_SIZE;

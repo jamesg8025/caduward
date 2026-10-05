@@ -1,7 +1,7 @@
 import { accessEvents, anomalyFlags, flagExplanations, patients, staff } from "@caduward/db";
+import type { Database } from "@caduward/db";
 import { flagExplanationSchema } from "@caduward/shared";
 import { eq, isNull } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { type FlagContext, buildPrompt } from "./prompt.js";
 import type { ExplanationProvider } from "./providers.js";
 
@@ -71,7 +71,7 @@ export interface ExplainedFlag {
 }
 
 export async function runExplanationPass(
-  database: PostgresJsDatabase,
+  database: Database,
   provider: ExplanationProvider,
   options?: { maxRetries?: number; onExplained?: (flag: ExplainedFlag) => void },
 ): Promise<ExplainPassResult> {
