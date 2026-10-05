@@ -68,6 +68,13 @@ describe("generatorConfigSchema", () => {
     const result = generatorConfigSchema.parse(minimal);
     expect(result.staffCount).toBe(200);
     expect(result.timeWindowDays).toBe(30);
+    expect(result.benignNoEncounterRate).toBe(0.005);
+  });
+
+  it("rejects a benignNoEncounterRate above 1", () => {
+    expect(() =>
+      generatorConfigSchema.parse({ ...DEFAULT_GENERATOR_CONFIG, benignNoEncounterRate: 1.5 }),
+    ).toThrow();
   });
 
   it("rejects anomalyMix that does not sum to 1", () => {
