@@ -1,9 +1,9 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { DEFAULT_DATABASE_URL } from "./config";
 import * as schema from "./schema";
 
-const connectionString =
-  process.env.CADUWARD_DATABASE_URL ?? "postgresql://caduward:caduward@localhost:5433/caduward";
+const connectionString = process.env.CADUWARD_DATABASE_URL ?? DEFAULT_DATABASE_URL;
 
 const client = postgres(connectionString);
 

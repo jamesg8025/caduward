@@ -1,16 +1,11 @@
 import * as schema from "@caduward/db";
+import { createTestDb } from "@caduward/db/testing";
 import { sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { refreshRoleBaselines } from "./baselines/refresh.js";
 import { runDetectionPass } from "./detect.js";
 
-const TEST_DB_URL =
-  process.env.CADUWARD_DATABASE_URL ?? "postgresql://caduward:caduward@localhost:5433/caduward";
-
-const client = postgres(TEST_DB_URL);
-const db = drizzle(client, { schema });
+const { db, client } = createTestDb();
 
 // --- Test fixtures ---
 
