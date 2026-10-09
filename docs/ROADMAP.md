@@ -39,11 +39,11 @@ Phased so an agent (or you) can work through this incrementally and always have 
 - [x] (Optional) Ollama provider toggle for the on-prem story
 
 ## Phase 4 — Dashboard
-- [ ] better-auth setup, Admin/Reviewer roles
-- [ ] Flag list view (server-rendered, sorted by severity)
-- [ ] Flag detail view (explanation plus raw contributing data)
-- [ ] Review-status actions (reviewed/escalated/dismissed)
-- [ ] Socket.IO live push for new flags
+- [x] better-auth setup, Admin/Reviewer roles
+- [x] Flag list view (server-rendered, sorted by severity)
+- [x] Flag detail view (explanation plus raw contributing data)
+- [x] Review-status actions (reviewed/escalated/dismissed)
+- [x] Socket.IO live push for new flags
 
 ## Phase 5 — Evaluation & polish
 - [ ] Evaluation script: precision/recall/F1 against `is_seeded_anomaly` ground truth
