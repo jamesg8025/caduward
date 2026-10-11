@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "pnpm --parallel --filter './apps/*' dev",
     "build": "pnpm -r build",
-    "test": "vitest --no-file-parallelism",
+    "test": "vitest run --no-file-parallelism",
+    "test:watch": "vitest --no-file-parallelism",
     "lint": "biome check .",
     "typecheck": "pnpm -r --no-bail exec tsc --noEmit -p tsconfig.json",
     "format": "biome format --write ."
