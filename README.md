@@ -79,4 +79,4 @@ pnpm dev                                 # runs web + worker
 
 ## Status
 
-Early planning stage. Please see `docs/ROADMAP.md` for the current phase.
+Early planning stage still. Please see `docs/ROADMAP.md` for the current phase.
